@@ -1,9 +1,31 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const Joi = require("joi");
+const multer = require("multer");
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
+app.use("/uploads", express.static("uploads"));
+
+
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "./public/images/");
+    },
+    filename: (req, file, cb) => {
+      cb(null, file.originalname);
+    },
+});
+  
+const upload = multer({ storage: storage });
+
+
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/index.html");
+});
+
 
 let games = [
     {
@@ -77,14 +99,34 @@ let games = [
 ];
 
 
-app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/index.html");
-});
-
 app.get("/api/games", (req, res) => {
     res.send(games);
 });
 
+app.post("/api/games", upload.single("img"), (req, res) => {
+    const result = validateInput(req.body);
+
+    if (result.error) {
+        res.status(400).send(result.error.details[0].message);
+        return;
+    }
+
+    console.log("valid");
+});
+
+
+
 app.listen(3001, () => {
     console.log("I'm Listening");
 });
+
+
+const validateInput = (game) => {
+    const schema = Joi.object({
+        title: Joi.string().min(3).required(),
+        "release-date": Joi.number().min(4).max(4).required(),
+        rank: Joi.number().required(),
+        price: Joi.number().required()
+    });
+    return schema.validate(game);
+}
