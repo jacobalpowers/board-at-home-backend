@@ -30,7 +30,7 @@ app.get("/", (req, res) => {
 let games = [
     {
         "title": "Brass: Birmingham",
-        "release-date": 2018,
+        "releaseDate": 2018,
         "rank": 1,
         "price": 79.99,
         "image": "brassBirmingham.jpg",
@@ -43,7 +43,7 @@ let games = [
         "artists": "Gavan Brown, Lina Cossette, David Forest, Damien Mammoliti, Matt Tolman"
     },{
         "title": "Pandemic Legacy: Season 1",
-        "release-date": 2015,
+        "releaseDate": 2015,
         "rank": 2,
         "price": 89.99,
         "image": "pandemicLegacy.webp",
@@ -56,7 +56,7 @@ let games = [
         "artists": "Chris Quilliams"
     },{
         "title": "Gloomhaven",
-        "release-date": 2017,
+        "releaseDate": 2017,
         "rank": 3,
         "price": 159.99,
         "image": "gloomhaven.webp",
@@ -70,7 +70,7 @@ let games = [
     },
     {
         "title": "Ark Nova",
-        "release-date": 2021,
+        "releaseDate": 2021,
         "rank": 4,
         "price": 74.99,
         "image": "arkNova.webp",
@@ -84,7 +84,7 @@ let games = [
     },
     {
         "title": "Twilight Imperium: Fourth Edition",
-        "release-date": 2017,
+        "releaseDate": 2017,
         "rank": 5,
         "price": 164.99,
         "image": "twilightImperium.webp",
@@ -124,7 +124,7 @@ app.listen(3001, () => {
 const validateInput = (game) => {
     const schema = Joi.object({
         title: Joi.string().min(3).required(),
-        "release-date": Joi.number().min(4).max(4).required(),
+        "releaseDate": Joi.number().min(4).max(4).required(),
         rank: Joi.number().required(),
         price: Joi.number().required()
     });
