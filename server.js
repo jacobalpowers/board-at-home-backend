@@ -108,7 +108,7 @@ app.get("/api/games", (req, res) => {
     res.send(games);
 });
 
-app.post("/api/games", upload.single("img"), (req, res) => {
+app.post("/api/games", upload.single("image"), (req, res) => {
     const result = validateInput(req.body);
 
     if (result.error) {
