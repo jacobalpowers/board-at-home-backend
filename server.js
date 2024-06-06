@@ -134,7 +134,25 @@ app.post("/api/games", upload.single("img"), (req, res) => {
 app.put("api/games:id", upload.single("image"), (req, res) => {
     let game = games.find((g) => g._id === parseInt(req.params.id));
 
-    
+    if (!game) res.status(400).send("Game with given id was not found");
+
+    const result = validateInput(req.body);
+
+    if (result.error) {
+        res.status(400).send(result.error.details[0].message);
+        return;
+    }
+
+    game.title = req.body.title;
+    game.releaseDate = req.body.releaseDate;
+    game.rank = req.body.releaseDate;
+    game.price = req.body.price;
+
+    if (req.file) {
+    game.image = req.file.filename;
+    }
+
+    res.send(game);
 })
 
 
