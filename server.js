@@ -29,6 +29,7 @@ app.get("/", (req, res) => {
 
 let games = [
     {
+        "_id": 0,
         "title": "Brass: Birmingham",
         "releaseDate": 2018,
         "rank": 1,
@@ -42,6 +43,7 @@ let games = [
         "designer": "Gavan Brown, Matt Tolman, Martin Wallace",
         "artists": "Gavan Brown, Lina Cossette, David Forest, Damien Mammoliti, Matt Tolman"
     },{
+        "_id": 1,
         "title": "Pandemic Legacy: Season 1",
         "releaseDate": 2015,
         "rank": 2,
@@ -55,6 +57,7 @@ let games = [
         "designer": "Rob Daviau, Matt Leacock",
         "artists": "Chris Quilliams"
     },{
+        "_id": 2,
         "title": "Gloomhaven",
         "releaseDate": 2017,
         "rank": 3,
@@ -69,6 +72,7 @@ let games = [
         "artists": "Alexandr Elichev, Josh T. McDowell, Alvaro Nebot"
     },
     {
+        "_id": 3,
         "title": "Ark Nova",
         "releaseDate": 2021,
         "rank": 4,
@@ -83,6 +87,7 @@ let games = [
         "artists": "Steffen Bieker, Loïc Billiau, Dennis Lohausen, Christof Tisch"
     },
     {
+        "_id": 4,
         "title": "Twilight Imperium: Fourth Edition",
         "releaseDate": 2017,
         "rank": 5,
@@ -111,9 +116,26 @@ app.post("/api/games", upload.single("img"), (req, res) => {
         return;
     }
 
-    console.log("valid");
+    const game = {
+        _id: games.length + 1,
+        title: req.body.title,
+        releaseDate: req.body.releaseDate,
+        price: req.body.price,
+    };
+
+    if (req.file) {
+        game.image = "images/" + req.file.filename;
+    }
+
+    games.push(game);
+    res.status(200).send(game);
 });
 
+app.put("api/games:id", upload.single("image"), (req, res) => {
+    let game = games.find((g) => g._id === parseInt(req.params.id));
+
+    
+})
 
 
 app.listen(3001, () => {
@@ -124,7 +146,7 @@ app.listen(3001, () => {
 const validateInput = (game) => {
     const schema = Joi.object({
         title: Joi.string().min(3).required(),
-        "releaseDate": Joi.number().min(4).max(4).required(),
+        releaseDate: Joi.number().min(1000).required(),
         rank: Joi.number().required(),
         price: Joi.number().required()
     });
