@@ -88,10 +88,7 @@ app.post("/api/games", upload.single("image"), async (req, res) => {
 });
 
 //Edit game
-app.put("/api/games/:id", upload.single("image"), (req, res) => {
-    let game = games.find((g) => g._id === parseInt(req.params.id));
-    if (!game) res.status(400).send("Game with given id was not found");
-
+app.put("/api/games/:id", upload.single("image"), async (req, res) => {
     const result = validateInput(req.body);
     
 
@@ -100,16 +97,20 @@ app.put("/api/games/:id", upload.single("image"), (req, res) => {
         return;
     }
 
-    game.title = req.body.title;
-    game.releaseDate = req.body.releaseDate;
-    game.rank = req.body.rank;
-    game.price = req.body.price;
+    let fieldsToUpdate = {
+        title: req.body.title,
+        releaseDate: req.body.releaseDate,
+        rank: req.body.rank,
+        price: req.body.price,
+    }
+    
 
     if (req.file) {
-    game.image = req.file.filename;
+        fieldsToUpdate.image = req.file.filename;
     }
 
-    res.send(game);
+    const updatedGame = await Game.findOne({ _id: req.params._id })
+    res.send(updatedGame);
 });
 
 app.delete("/api/games/:id", async (req, res) => {
