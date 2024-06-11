@@ -3,13 +3,36 @@ const cors = require("cors");
 const app = express();
 const Joi = require("joi");
 const multer = require("multer");
+const mongoose = require("mongoose");
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
 app.use("/uploads", express.static("uploads"));
 
+//Mongoose to connnect to MongoDB
+mongoose
+    .connect("mongodb+srv://japowers:RUD1IMizJvcIr6Q4@data.wtiy9yq.mongodb.net/")
+    .then(() => console.log("Connected to mongodb..."))
+    .catch((err) => console.error("Could not connect to mongodb...", err));
+
+const gameSchema = new mongoose.Schema({
+    title: String,
+    rank: Number,
+    releaseDate: Number,
+    price: Number,
+    image: String,
+});
+
+const Game = mongoose.model("Game", gameSchema);
 
 
+//Return total database of games
+const getGames = async (res) => {
+    const games = await Game.find();
+    res.send(games);
+}
+
+//Image Handling
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, "./public/images/");
@@ -22,121 +45,49 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 
+//Get Base Website
 app.get("/", (req, res) => {
     res.sendFile(__dirname + "/index.html");
 });
 
 
-let games = [
-    {
-        "_id": 0,
-        "title": "Brass: Birmingham",
-        "releaseDate": 2018,
-        "rank": 1,
-        "price": 79.99,
-        "image": "brassBirmingham.jpg",
-        "playtime": "60-120 Min",
-        "avgRating": 8.6,
-        "numPlayers": "2-4",
-        "age": 14,
-        "website": "https://roxley.com/products/brass-birmingham-deluxe-edition",
-        "designer": "Gavan Brown, Matt Tolman, Martin Wallace",
-        "artists": "Gavan Brown, Lina Cossette, David Forest, Damien Mammoliti, Matt Tolman"
-    },{
-        "_id": 1,
-        "title": "Pandemic Legacy: Season 1",
-        "releaseDate": 2015,
-        "rank": 2,
-        "price": 89.99,
-        "image": "pandemicLegacy.webp",
-        "playtime": "60 Min",
-        "avgRating": 8.5,
-        "numPlayers": "2-4",
-        "age": 13,
-        "website": "https://www.zmangames.com/en/products/pandemic-legacy-season-1/",
-        "designer": "Rob Daviau, Matt Leacock",
-        "artists": "Chris Quilliams"
-    },{
-        "_id": 2,
-        "title": "Gloomhaven",
-        "releaseDate": 2017,
-        "rank": 3,
-        "price": 159.99,
-        "image": "gloomhaven.webp",
-        "playtime": "60-120 Min",
-        "avgRating": 8.6,
-        "numPlayers": "1-4",
-        "age": 14,
-        "website": "https://cephalofair.com/products/gloomhaven",
-        "designer": "Isaac Childres",
-        "artists": "Alexandr Elichev, Josh T. McDowell, Alvaro Nebot"
-    },
-    {
-        "_id": 3,
-        "title": "Ark Nova",
-        "releaseDate": 2021,
-        "rank": 4,
-        "price": 74.99,
-        "image": "arkNova.webp",
-        "playtime": "90-150 Min",
-        "avgRating": 8.5,
-        "numPlayers": "1-4",
-        "age": 14,
-        "website": "https://capstone-games.com/board-games/ark-nova/",
-        "designer": "Mathias Wigge",
-        "artists": "Steffen Bieker, Loïc Billiau, Dennis Lohausen, Christof Tisch"
-    },
-    {
-        "_id": 4,
-        "title": "Twilight Imperium: Fourth Edition",
-        "releaseDate": 2017,
-        "rank": 5,
-        "price": 164.99,
-        "image": "twilightImperium.webp",
-        "playtime": "90-150 Min",
-        "avgRating": 8.5,
-        "numPlayers": "1-4",
-        "age": 14,
-        "website": "https://capstone-games.com/board-games/ark-nova/",
-        "designer": "Dane Beltrami, Corey Konieczka, Christian T. Petersen",
-        "artists": "Scott Schomburg"
-    }
-];
-
-
+//Get all games
 app.get("/api/games", (req, res) => {
-    res.send(games);
+    getGames(res);
 });
 
-app.get("/api/games/:id", (req, res) => {
-    res.send(games.find((g) => g._id === parseInt(req.params.id)));
+//Get a specific game
+app.get("/api/games/:id", async (req, res) => {
+    //res.send(games.find((g) => g._id === parseInt(req.params.id)));
+    const game = await Game.findOne({_id: id });
+    res.send(game);
 });
 
-app.post("/api/games", upload.single("image"), (req, res) => {
+//Add a new game to the database
+app.post("/api/games", upload.single("image"), async (req, res) => {
     const result = validateInput(req.body);
-    console.log(req.body);
 
     if (result.error) {
         res.status(400).send(result.error.details[0].message);
         return;
     }
 
-    const game = {
-        _id: games.length,
+    const game = new Game({
         title: req.body.title,
         rank: req.body.rank,
         releaseDate: req.body.releaseDate,
         price: req.body.price,
-    };
+    });
 
     if (req.file) {
         game.image = req.file.filename;
     }
 
-    games.push(game);
-    res.status(200).send(game);
+    const newGame = await game.save();
+    res.send(newGame);
 });
 
+//Edit game
 app.put("/api/games/:id", upload.single("image"), (req, res) => {
     let game = games.find((g) => g._id === parseInt(req.params.id));
     if (!game) res.status(400).send("Game with given id was not found");
@@ -161,13 +112,8 @@ app.put("/api/games/:id", upload.single("image"), (req, res) => {
     res.send(game);
 });
 
-app.delete("/api/games/:id", (req, res) => {
-    const game = games.find((g) => g._id === parseInt(req.params.id));
-
-    if (!game) res.status(400).send("Game with given id was not found");
-
-    const index = games.indexOf(game);
-    games.splice(index, 1);
+app.delete("/api/games/:id", async (req, res) => {
+    const game = await Game.findByIdAndDelete(req.params.id);
     res.send(game);
 });
 
